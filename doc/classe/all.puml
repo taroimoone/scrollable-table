@@ -1,62 +1,66 @@
 @startuml class_diagram
 title Class Diagram
 
-package public {
-    package lib {
-        package interfaces {
-            interface Dimension {
-                + row: number
-                + col: number
-            }
-
-            interface ScrollableTableDataSource {
-                scrollableTableDimensions(): Dimension;
-                scrollableTableFixedHeaderCell(): TableCell;
-                scrollableTableColumnHeaderCell(col: number): TableCell;
-                scrollabelTableRowHeaderCell(row: number): TableCell;
-                scrollabalTableRecordsCell(path: Dimension): TableCell;
-            }
-
-            Dimension <.. ScrollableTableDataSource
+package lib {
+    package interfaces {
+        interface ScrollableTableDataSource {
+            scrollableTableDimensions(): Dimension;
+            scrollableTableFixedHeaderCell(): TableCell;
+            scrollableTableColumnHeaderCell(col: number): TableCell;
+            scrollabelTableRowHeaderCell(row: number): TableCell;
+            scrollabalTableRecordsCell(path: Dimension): TableCell;
         }
     }
+}
 
-    package models {
-        ' TableCell extends Element (it means in browser element)
+package models {
 
-        class TableCell {
-            + constructor()
-        }
-
-        TableColumn o-- TableCell
-    }
-
-
-    class ScrollableTable {
-        -- DOM --
-        - rootDiv: HTMLElement
-        - fixedHeaderDiv: HTMLElement
-        - columnHeaderDiv: HTMLElement
-        - rowHeaderDiv: HTMLElement
-        - recordsDiv: HTMLElement
-        -- delegate --
-        - dataSource: ScrollableTableDataSource
+    class Dimension {
+        + row: number
+        + col: number
         --
-        + constructor(root: HTMLElement, dataSource: ScrollableTableDataSource)
-        + render()
+        + constructor(col: number, row: number)
+        + get det(): number
     }
 
-    ScrollableTableDataSource <.. ScrollableTable
-    Dimension <.. ScrollableTable 
-    ScrollableTable o-- TableCell
+    class TableCell {
+        + key: string
+        + root: HTMLElement
+        --
+        + constructor(key: string)
+        + render(): HTMLElement
+    }
+
+    Dimension <.. ScrollableTableDataSource
 }
 
-package external {
-    package _node {
-        Element <|-- TableCell
-        Element <|-- HTMLElement
-    }
+
+class ScrollableTable {
+    -- DOM --
+    + rootDiv: HTMLElement
+    + fixedHeaderDiv: HTMLElement
+    + columnHeaderDiv: HTMLElement
+    + rowHeaderDiv: HTMLElement
+    + recordsDiv: HTMLElement
+    -- delegate --
+    - dataSource: ScrollableTableDataSource
+    --
+    + constructor(root: HTMLElement, dataSource: ScrollableTableDataSource)
+    + render()
+    - removeCells()
+    - addCells()
+    - editFixedHeaderCell()
+    - editColumnHeaderCells()
+    - editRowHeaderCells()
+    - editRecordCells()
+    - resizeCell()
+    - setScrolls()
+    - cell()
 }
+
+ScrollableTableDataSource <.. ScrollableTable
+Dimension <.. ScrollableTable 
+ScrollableTable o-- TableCell
 
 
 
