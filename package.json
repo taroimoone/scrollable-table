@@ -1,8 +1,7 @@
 {
   "name": "scrollable-table",
-  "version": "1.0.0",
-  "private": true,
-  "description": "",
+  "version": "0.0.1",
+  "description": "for using header table",
   "main": "dist/index.js",
   "files": [
     "dist/**/*",
@@ -13,7 +12,7 @@
     "start:dev": "webpack-dev-server",
     "build": "tsc"
   },
-  "author": "",
+  "author": "ryutaro ishii",
   "license": "ISC",
   "devDependencies": {
     "autoprefixer": "^9.4.8",
