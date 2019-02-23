@@ -47,16 +47,14 @@ export class ScrollableTable {
         ${ScrollableTable.prefix}-area ${ScrollableTable.prefix}-records`;
         this.rootDiv.appendChild(this.recordsDiv);
 
-        this.recordsDiv.addEventListener('scroll', ev => {
-            this.columnHeaderDiv.scrollLeft = this.recordsDiv.scrollLeft;
-            this.rowHeaderDiv.scrollTop = this.recordsDiv.scrollTop;
-        });
+        this.recordsDiv.addEventListener('scroll', ev => this.setScrolls());
 
         root.appendChild(this.rootDiv);
 
         this.dataSource = dataSource;
     }
 
+    /** rendering table. call when changed something of data source */
     render() {
         this.removeCells();
         this.addCells();
@@ -64,10 +62,11 @@ export class ScrollableTable {
         this.editColumnHeaderCells();
         this.editRowHeaderCells();
         this.editRecordCells();
-        this.msResize();
+        this.resizeCell();
     }
 
-    private removeCells() {
+    /** remove cell div to fit dimension */
+    protected removeCells() {
         const dim = this.dataSource.scrollableTableDimensions();
         while (dim.col < this.columnHeaderDiv.childElementCount) {
             const last = this.columnHeaderDiv.lastChild;
@@ -86,15 +85,16 @@ export class ScrollableTable {
         }
     }
 
-    private addCells() {
+    /** add cell div to fit dimension */
+    protected addCells() {
         const dim = this.dataSource.scrollableTableDimensions();
         for (let r = 1; r <= dim.row; r += 1) {
             if (r <= this.rowHeaderDiv.childElementCount) continue;
-            this.rowHeaderDiv.appendChild(this.cell(undefined, r));
+            this.rowHeaderDiv.appendChild(this.cell());
         }
         for (let c = 1; c <= dim.col; c += 1) {
             if (c <= this.columnHeaderDiv.childElementCount) continue;
-            this.columnHeaderDiv.appendChild(this.cell(c));
+            this.columnHeaderDiv.appendChild(this.cell());
         }
         for (let d = 1; d <= dim.det; d += 1) {
             if (d <= this.recordsDiv.childElementCount) continue;
@@ -102,17 +102,19 @@ export class ScrollableTable {
         }
     }
 
-    private editFixedHeaderCell() {
+    /** edit one fixed-header cell */
+    protected editFixedHeaderCell() {
         const e = this.fixedHeaderDiv.children[0] as HTMLElement;
         const cell = this.dataSource.scrollableTableFixedHeaderCell();
         if (e === undefined) {
-            this.fixedHeaderDiv.appendChild(cell.root);
+            this.fixedHeaderDiv.appendChild(cell.render());
         } else if (e.dataset.key !== cell.key) {
-            this.columnHeaderDiv.replaceChild(cell.root, e);
+            this.fixedHeaderDiv.replaceChild(cell.render(), e);
         }
     }
 
-    private editColumnHeaderCells() {
+    /** edit column-header cells */
+    protected editColumnHeaderCells() {
         const dim = this.dataSource.scrollableTableDimensions();
         for (let c = 0; c < dim.col; c += 1) {
             const e = this.columnHeaderDiv.children[c] as HTMLElement;
@@ -121,14 +123,15 @@ export class ScrollableTable {
             e.style.msGridColumn = `${c + 1}`;
             const cell = this.dataSource.scrollableTableColumnHeaderCell(c);
             if (e.dataset.key !== cell.key) {
-                cell.root.style.gridColumn = `${c + 1}`;
-                cell.root.style.msGridColumn = `${c + 1}`;
-                this.columnHeaderDiv.replaceChild(cell.root, e);
+                cell.render().style.gridColumn = `${c + 1}`;
+                cell.render().style.msGridColumn = `${c + 1}`;
+                this.columnHeaderDiv.replaceChild(cell.render(), e);
             }
         }
     }
 
-    private editRowHeaderCells() {
+    /** edit row-header cells */
+    protected editRowHeaderCells() {
         const dim = this.dataSource.scrollableTableDimensions();
         for (let r = 0; r < dim.row; r += 1) {
             const e = this.rowHeaderDiv.children[r] as HTMLElement;
@@ -137,14 +140,15 @@ export class ScrollableTable {
             e.style.msGridRow = `${r + 1}`;
             const cell = this.dataSource.scrollabelTableRowHeaderCell(r);
             if (e.dataset.key !== cell.key) {
-                cell.root.style.gridRow = `${r + 1}`;
-                cell.root.style.msGridRow = `${r + 1}`;
-                this.rowHeaderDiv.replaceChild(cell.root, e);
+                cell.render().style.gridRow = `${r + 1}`;
+                cell.render().style.msGridRow = `${r + 1}`;
+                this.rowHeaderDiv.replaceChild(cell.render(), e);
             }
         }
     }
 
-    private editRecordCells() {
+    /** edit record cells */
+    protected editRecordCells() {
         const dim = this.dataSource.scrollableTableDimensions();
         for (let c = 0; c < dim.col; c += 1) {
             for (let r = 0; r < dim.row; r += 1) {
@@ -159,18 +163,28 @@ export class ScrollableTable {
                 const path = new Dimension(c, r);
                 const cell = this.dataSource.scrollabalTableRecordsCell(path);
                 if (e.dataset.key !== cell.key) {
-                    cell.root.style.gridRow = `${r + 1}`;
-                    cell.root.style.msGridRow = `${r + 1}`;
-                    cell.root.style.gridColumn = `${c + 1}`;
-                    cell.root.style.msGridColumn = `${c + 1}`;
-                    this.recordsDiv.replaceChild(cell.root, e);
+                    cell.render().style.gridColumn = `${c + 1}`;
+                    cell.render().style.msGridColumn = `${c + 1}`;
+                    cell.render().style.gridRow = `${r + 1}`;
+                    cell.render().style.msGridRow = `${r + 1}`;
+                    this.recordsDiv.replaceChild(cell.render(), e);
                 }
             }
         }
     }
 
-    private msResize() {
+    /** resize cells to use grid */
+    protected resizeCell() {
         const dim = this.dataSource.scrollableTableDimensions();
+        this.columnHeaderDiv.style.msGridColumns = '';
+        this.columnHeaderDiv.style.gridTemplateColumns = '';
+        this.rowHeaderDiv.style.msGridRows = '';
+        this.rowHeaderDiv.style.gridTemplateRows = '';
+
+        this.recordsDiv.style.msGridColumns = '';
+        this.recordsDiv.style.msGridRows = '';
+        this.recordsDiv.style.gridTemplate = '';
+
         const maxColumnWidthes: number[] = [];
         for (let c = 0; c < dim.col; c += 1) {
             const record = this.recordsDiv.children[c * dim.row] as HTMLElement;
@@ -206,19 +220,18 @@ export class ScrollableTable {
         this.recordsDiv.style.msGridColumns = gridCol;
         this.recordsDiv.style.msGridRows = gridRow;
         this.recordsDiv.style.gridTemplate = `${gridRow} / ${gridCol}`;
+        this.setScrolls();
     }
 
-    private cell(c?: number, r?: number): HTMLElement {
+    protected setScrolls() {
+        this.columnHeaderDiv.scrollLeft = this.recordsDiv.scrollLeft;
+        this.rowHeaderDiv.scrollTop = this.recordsDiv.scrollTop;
+    }
+
+    /** create cell */
+    protected cell(): HTMLElement {
         const e = document.createElement('div');
         e.classList.add(`${ScrollableTable.prefix}-cell`);
-        if (c) {
-            e.style.gridColumn = `${c}`;
-            e.style.msGridColumn = `${c}`;
-        }
-        if (r) {
-            e.style.gridRow = `${r}`;
-            e.style.msGridRow = `${r}`;
-        }
         return e;
     }
 }

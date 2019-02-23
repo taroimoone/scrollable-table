@@ -1,12 +1,15 @@
-import { ScrollableTable } from '../scrollable_table';
-
 export class TableCell {
     key: string;
-    root: HTMLElement;
+    root?: HTMLElement;
     constructor(key: string) {
         this.key = key;
-        this.root = document.createElement('div');
-        this.root.classList.add(`${ScrollableTable.prefix}-cell`);
-        this.root.dataset.key = key;
+    }
+
+    render(): HTMLElement {
+        if (this.root === undefined) {
+            this.root = document.createElement('div');
+        }
+        this.root.dataset.key = this.key;
+        return this.root;
     }
 }

@@ -10,14 +10,19 @@ window.onload = () => {
     sclTbl.render();
 
     // root.onclick = () => {
-    //     dataSource.dim = new Dimension(30, 20);
+    //     dataSource.dim = new Dimension(60, 70);
     //     dataSource.data = [];
     //     for (let c = 0; c < dataSource.dim.col; c += 1) {
-    //         const d: string[] = [];
+    //         const da: HTMLElement[] = [];
     //         for (let r = 0; r < dataSource.dim.row; r += 1) {
-    //             d.push(`record-${c}-${r}`);
+    //             const d = document.createElement('div');
+    //             d.innerHTML = `record-${c}-${r}---tooooooolong`;
+    //             if (r === 2 && c === 1) {
+    //                 d.innerHTML = `<div>aaa</div><div>uuu</div>`;
+    //             }
+    //             da.push(d);
     //         }
-    //         dataSource.data.push(d);
+    //         dataSource.data.push(da);
     //     }
     //     sclTbl.render();
     // };

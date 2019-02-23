@@ -9,7 +9,7 @@
 #scrollable-table-root {
     width: 100%;
     height: 100%;
-    
+
     display: grid;
     grid-template:
         "fixed-header column-header" max-content
@@ -34,9 +34,5 @@
         }
 
         display: grid;
-
-        .scrollable-table-cell {
-            white-space: nowrap;
-        }
     }
 }

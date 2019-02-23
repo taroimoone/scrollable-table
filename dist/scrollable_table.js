@@ -27,13 +27,11 @@ var ScrollableTable = /** @class */ (function () {
         this.recordsDiv = document.createElement('div');
         this.recordsDiv.className = "\n        " + ScrollableTable.prefix + "-area " + ScrollableTable.prefix + "-records";
         this.rootDiv.appendChild(this.recordsDiv);
-        this.recordsDiv.addEventListener('scroll', function (ev) {
-            _this.columnHeaderDiv.scrollLeft = _this.recordsDiv.scrollLeft;
-            _this.rowHeaderDiv.scrollTop = _this.recordsDiv.scrollTop;
-        });
+        this.recordsDiv.addEventListener('scroll', function (ev) { return _this.setScrolls(); });
         root.appendChild(this.rootDiv);
         this.dataSource = dataSource;
     }
+    /** rendering table. call when changed something of data source */
     ScrollableTable.prototype.render = function () {
         this.removeCells();
         this.addCells();
@@ -41,8 +39,9 @@ var ScrollableTable = /** @class */ (function () {
         this.editColumnHeaderCells();
         this.editRowHeaderCells();
         this.editRecordCells();
-        this.msResize();
+        this.resizeCell();
     };
+    /** remove cell div to fit dimension */
     ScrollableTable.prototype.removeCells = function () {
         var dim = this.dataSource.scrollableTableDimensions();
         while (dim.col < this.columnHeaderDiv.childElementCount) {
@@ -64,17 +63,18 @@ var ScrollableTable = /** @class */ (function () {
             this.recordsDiv.removeChild(last);
         }
     };
+    /** add cell div to fit dimension */
     ScrollableTable.prototype.addCells = function () {
         var dim = this.dataSource.scrollableTableDimensions();
         for (var r = 1; r <= dim.row; r += 1) {
             if (r <= this.rowHeaderDiv.childElementCount)
                 continue;
-            this.rowHeaderDiv.appendChild(this.cell(undefined, r));
+            this.rowHeaderDiv.appendChild(this.cell());
         }
         for (var c = 1; c <= dim.col; c += 1) {
             if (c <= this.columnHeaderDiv.childElementCount)
                 continue;
-            this.columnHeaderDiv.appendChild(this.cell(c));
+            this.columnHeaderDiv.appendChild(this.cell());
         }
         for (var d = 1; d <= dim.det; d += 1) {
             if (d <= this.recordsDiv.childElementCount)
@@ -82,16 +82,18 @@ var ScrollableTable = /** @class */ (function () {
             this.recordsDiv.appendChild(this.cell());
         }
     };
+    /** edit one fixed-header cell */
     ScrollableTable.prototype.editFixedHeaderCell = function () {
         var e = this.fixedHeaderDiv.children[0];
         var cell = this.dataSource.scrollableTableFixedHeaderCell();
         if (e === undefined) {
-            this.fixedHeaderDiv.appendChild(cell.root);
+            this.fixedHeaderDiv.appendChild(cell.render());
         }
         else if (e.dataset.key !== cell.key) {
-            this.columnHeaderDiv.replaceChild(cell.root, e);
+            this.fixedHeaderDiv.replaceChild(cell.render(), e);
         }
     };
+    /** edit column-header cells */
     ScrollableTable.prototype.editColumnHeaderCells = function () {
         var dim = this.dataSource.scrollableTableDimensions();
         for (var c = 0; c < dim.col; c += 1) {
@@ -102,12 +104,13 @@ var ScrollableTable = /** @class */ (function () {
             e.style.msGridColumn = "" + (c + 1);
             var cell = this.dataSource.scrollableTableColumnHeaderCell(c);
             if (e.dataset.key !== cell.key) {
-                cell.root.style.gridColumn = "" + (c + 1);
-                cell.root.style.msGridColumn = "" + (c + 1);
-                this.columnHeaderDiv.replaceChild(cell.root, e);
+                cell.render().style.gridColumn = "" + (c + 1);
+                cell.render().style.msGridColumn = "" + (c + 1);
+                this.columnHeaderDiv.replaceChild(cell.render(), e);
             }
         }
     };
+    /** edit row-header cells */
     ScrollableTable.prototype.editRowHeaderCells = function () {
         var dim = this.dataSource.scrollableTableDimensions();
         for (var r = 0; r < dim.row; r += 1) {
@@ -118,12 +121,13 @@ var ScrollableTable = /** @class */ (function () {
             e.style.msGridRow = "" + (r + 1);
             var cell = this.dataSource.scrollabelTableRowHeaderCell(r);
             if (e.dataset.key !== cell.key) {
-                cell.root.style.gridRow = "" + (r + 1);
-                cell.root.style.msGridRow = "" + (r + 1);
-                this.rowHeaderDiv.replaceChild(cell.root, e);
+                cell.render().style.gridRow = "" + (r + 1);
+                cell.render().style.msGridRow = "" + (r + 1);
+                this.rowHeaderDiv.replaceChild(cell.render(), e);
             }
         }
     };
+    /** edit record cells */
     ScrollableTable.prototype.editRecordCells = function () {
         var dim = this.dataSource.scrollableTableDimensions();
         for (var c = 0; c < dim.col; c += 1) {
@@ -138,17 +142,25 @@ var ScrollableTable = /** @class */ (function () {
                 var path = new Dimension(c, r);
                 var cell = this.dataSource.scrollabalTableRecordsCell(path);
                 if (e.dataset.key !== cell.key) {
-                    cell.root.style.gridRow = "" + (r + 1);
-                    cell.root.style.msGridRow = "" + (r + 1);
-                    cell.root.style.gridColumn = "" + (c + 1);
-                    cell.root.style.msGridColumn = "" + (c + 1);
-                    this.recordsDiv.replaceChild(cell.root, e);
+                    cell.render().style.gridColumn = "" + (c + 1);
+                    cell.render().style.msGridColumn = "" + (c + 1);
+                    cell.render().style.gridRow = "" + (r + 1);
+                    cell.render().style.msGridRow = "" + (r + 1);
+                    this.recordsDiv.replaceChild(cell.render(), e);
                 }
             }
         }
     };
-    ScrollableTable.prototype.msResize = function () {
+    /** resize cells to use grid */
+    ScrollableTable.prototype.resizeCell = function () {
         var dim = this.dataSource.scrollableTableDimensions();
+        this.columnHeaderDiv.style.msGridColumns = '';
+        this.columnHeaderDiv.style.gridTemplateColumns = '';
+        this.rowHeaderDiv.style.msGridRows = '';
+        this.rowHeaderDiv.style.gridTemplateRows = '';
+        this.recordsDiv.style.msGridColumns = '';
+        this.recordsDiv.style.msGridRows = '';
+        this.recordsDiv.style.gridTemplate = '';
         var maxColumnWidthes = [];
         for (var c = 0; c < dim.col; c += 1) {
             var record = this.recordsDiv.children[c * dim.row];
@@ -176,18 +188,16 @@ var ScrollableTable = /** @class */ (function () {
         this.recordsDiv.style.msGridColumns = gridCol;
         this.recordsDiv.style.msGridRows = gridRow;
         this.recordsDiv.style.gridTemplate = gridRow + " / " + gridCol;
+        this.setScrolls();
     };
-    ScrollableTable.prototype.cell = function (c, r) {
+    ScrollableTable.prototype.setScrolls = function () {
+        this.columnHeaderDiv.scrollLeft = this.recordsDiv.scrollLeft;
+        this.rowHeaderDiv.scrollTop = this.recordsDiv.scrollTop;
+    };
+    /** create cell */
+    ScrollableTable.prototype.cell = function () {
         var e = document.createElement('div');
         e.classList.add(ScrollableTable.prefix + "-cell");
-        if (c) {
-            e.style.gridColumn = "" + c;
-            e.style.msGridColumn = "" + c;
-        }
-        if (r) {
-            e.style.gridRow = "" + r;
-            e.style.msGridRow = "" + r;
-        }
         return e;
     };
     ScrollableTable.prefix = 'scrollable-table';
