@@ -1,0 +1,63 @@
+@startuml class_diagram
+title Class Diagram
+
+package public {
+    package lib {
+        package interfaces {
+            interface Dimension {
+                + row: number
+                + col: number
+            }
+
+            interface ScrollableTableDataSource {
+                scrollableTableDimensions(): Dimension;
+                scrollableTableFixedHeaderCell(): TableCell;
+                scrollableTableColumnHeaderCell(col: number): TableCell;
+                scrollabelTableRowHeaderCell(row: number): TableCell;
+                scrollabalTableRecordsCell(path: Dimension): TableCell;
+            }
+
+            Dimension <.. ScrollableTableDataSource
+        }
+    }
+
+    package models {
+        ' TableCell extends Element (it means in browser element)
+
+        class TableCell {
+            + constructor()
+        }
+
+        TableColumn o-- TableCell
+    }
+
+
+    class ScrollableTable {
+        -- DOM --
+        - rootDiv: HTMLElement
+        - fixedHeaderDiv: HTMLElement
+        - columnHeaderDiv: HTMLElement
+        - rowHeaderDiv: HTMLElement
+        - recordsDiv: HTMLElement
+        -- delegate --
+        - dataSource: ScrollableTableDataSource
+        --
+        + constructor(root: HTMLElement, dataSource: ScrollableTableDataSource)
+        + render()
+    }
+
+    ScrollableTableDataSource <.. ScrollableTable
+    Dimension <.. ScrollableTable 
+    ScrollableTable o-- TableCell
+}
+
+package external {
+    package _node {
+        Element <|-- TableCell
+        Element <|-- HTMLElement
+    }
+}
+
+
+
+@enduml
